@@ -176,18 +176,14 @@ while file_exists == False:
         steps = count_steps(newf, 3)
         # ### Function to create days (slice function?)
         l = newf
-        n = 86400000
-        chunks = [l[i:i + n] for i in range(0, len(l), n)]
-        print(chunks)
-        #split_list = chunks(newf,100)
-        #print(split_list)
-        # day_1 = newf[0:86400000]
-        # day_2 = newf[86400001:172800001]
-        #
+        n = 86400001
+        chunks = [l[i:i + n] for i in range(0, len(l), n)] #uses slicing in a list comprehension to make sub lists after each day
+        #print(chunks)
 
 
-        #
-        # # For loop to count steps for xxxx days and record the number of steps into a dictionary (list starts at 0)
+        #For loop to count steps for xxxx days and record the number of steps into a dictionary (list starts at 0)
+        steps_list = map(count_steps(chunks, 3))
+        print(steps_list)
         # steps = []
         # steps = count_steps(day_1, 3)
 
