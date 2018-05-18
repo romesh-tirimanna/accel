@@ -142,18 +142,13 @@ while file_exists == False:
                 bool_sex == False
 
 
-        ########
-        #resultant = [euclidean_norm(*x,*y,*z) for x,y,z in zip(a, b, c)] #list comprehension that creates a new list by applying the euclidean_norm function to the list of x,y,z tuples
-
-
         ''' Calculates the total nonwear in percent by dividing the sum of all the entries below the temperature threshold by the total number of entries'''
         ###### Calculate median and take that as the threshold
 
         ordered_temp_list_tuples = get_ordered_temp()
         temp_integers = [x[0] for x in ordered_temp_list_tuples]
-        #print(temp_integers)
 
-        # Distribution of the data: Min, Q1, Median, Q3, Max
+        # Distribution of the data: Min, Q1, Median, mean, mode, Q3, Max
         minimum = min(temp_integers)
         q1 = np.percentile(temp_integers, 25)
         median = statistics.median(temp_integers)
@@ -163,10 +158,10 @@ while file_exists == False:
         maximum = max(temp_integers)
 
         # print the above results
-        print("Minimum value: ", minimum, "\n1st quartile: ", q1, "\nMedian: ", median, "\nMean: ", mean, "\n3rd quartile: ", q3, "Maximum value: ", maximum)
+        print("Minimum value: ", minimum, "\n1st quartile: ", q1, "\nMedian: ", median, "\nMean: ", mean, "\nMode: ", mode, "\n3rd quartile: ", q3, "\nMaximum value: ", maximum)
 
         # ask the user what threshold he would like:
-        answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: q3 \n6: maximum value"))
+        answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: mode \n6 q3, \n7: maximum value"))
 
         if answer == 1:
             chosen_option = minimum
@@ -177,8 +172,10 @@ while file_exists == False:
         elif answer == 4:
             chosen_option = mean
         elif answer == 5:
-            chosen_option = q3
+            chosen_option = mode
         elif answer == 6:
+            chosen_option = q3
+        elif answer == 7:
             chosen_option = maximum
         else:
             print("Please choose an option 1-6")
@@ -213,7 +210,7 @@ while file_exists == False:
         newf = [round(float(x[0]),0) for x in resultant_list] #converts the list of tuples to a list of integers
         steps = count_steps(newf, 3)
         l = newf
-        n = 200
+        n = 86400000
         chunks = [l[i:i + n] for i in range(0, len(l), n)]    #uses slicing in a list comprehension to make sub lists after each day
         # print(chunks)
 
