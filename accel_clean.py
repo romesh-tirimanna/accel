@@ -9,16 +9,16 @@
 #<rst114 [at] ic.ac.uk>
 
 """This program was designed to be able to perform analysis of raw accelerometer data
-"""
+of the CWA filetype."""
 
 # Modules/ packages imported
 import sqlite3
 import csv
-import math
+import statistics
+import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
-
-
+from cwa1 import *
 ### FUNCTIONS
 
 def read_temp_from_db():
@@ -34,27 +34,21 @@ def get_ordered_temp():
     return ordered_temp
 
 
-def get_time():
-    """Function that reads the SQLite database and returns the time sample collumn"""
-    time_list = []
-    for rows in dbcurs.execute("SELECT timesample FROM acc"):
-        time_list.append(rows)
-    return time_list
-
-
 def compliancescore(nonwear):
     """Function that uses the percentage non-wear to calculate a compliance score"""
     if nonwear <= 10:
-        return "excellent"
+        score = "excellent"
     elif nonwear <= 30:
-        return "good"
+        score = "good"
     elif nonwear <= 56:
-        return "average"
+        score = "average"
     elif 57 <= nonwear <= 100:
-        return "poor"
+        score = "poor"
     else:
-        return "error"
+        score = "error"
+    return score
 
+# namefunction function
 
 def read_resultant():
     """Function that reads the SQLite database and returns the resultant collumn"""
@@ -125,30 +119,23 @@ while file_exists == False:
         # While loop to check age input
         bool_age = False
         while bool_age == False:
-            age = int(input("Enter patient age: "))
-            if age == str():
-                print("Age must be a number")
+            age = input("Enter patient age: ")
+            try:
+                age = int(age)
+                if age <= 0 or age >= 130:
+                    print("Age is out of range")
+                    bool_age = False
+                else:
+                    bool_age = True
+            except ValueError:
+                print("Enter a number")
                 bool_age = False
-            elif age <= 0:
-                print("Age is out of range")
-                bool_age = False
-            elif age >= 130:
-                print("Age is out of range")
-                bool_age = False
-            else:
-                bool_age = True
 
         #while loop to check sex input
         bool_sex = False
         while bool_sex == False:
             sex = input("Enter patient sex (M/F): ")
-            if sex == "M":
-                bool_sex = True
-            elif sex == "F":
-                bool_sex = True
-            elif sex == "m":
-                bool_sex = True
-            elif sex == "f":
+            if sex.upper() in ["M", "F"]:
                 bool_sex = True
             else:
                 print("invalid input! Please input M for male or F for female")
@@ -165,54 +152,95 @@ while file_exists == False:
         ordered_temp_list_tuples = get_ordered_temp()
         temp_integers = [x[0] for x in ordered_temp_list_tuples]
         #print(temp_integers)
-        median_possition = (len(temp_integers)+1)/2           #finds the position of the median in the list
-        rounded = round(median_possition)                     #rounds the possition so its an integer
-        temp_threshold = temp_integers[rounded]               #finds the value of the median
-        #print(temp_threshold)
 
+        # Distribution of the data: Min, Q1, Median, Q3, Max
+        minimum = min(temp_integers)
+        q1 = np.percentile(temp_integers, 25)
+        median = statistics.median(temp_integers)
+        mean = np.mean(temp_integers)
+        mode = statistics.mode(temp_integers)
+        q3 = np.percentile(temp_integers, 75)
+        maximum = max(temp_integers)
+
+        # print the above results
+        print("Minimum value: ", minimum, "\n1st quartile: ", q1, "\nMedian: ", median, "\nMean: ", mean, "\n3rd quartile: ", q3, "Maximum value: ", maximum)
+
+        # ask the user what threshold he would like:
+        answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: q3 \n6: maximum value"))
+
+        if answer == 1:
+            chosen_option = minimum
+        elif answer == 2:
+            chosen_option = q1
+        elif answer == 3:
+            chosen_option = median
+        elif answer == 4:
+            chosen_option = mean
+        elif answer == 5:
+            chosen_option = q3
+        elif answer == 6:
+            chosen_option = maximum
+        else:
+            print("Please choose an option 1-6")
+
+        # def namefunction(chosen_option):
         temp_list_tuples = read_temp_from_db()                #The function returns a list of tuples
         newlist = [x[0] for x in temp_list_tuples]            #list comprehension that formats the list of tuples so that it only takes every 1st element and makes a list of integers.
         len_list = len(newlist)
-        binary_list = [int(t <= temp_threshold) for t in newlist]              #list comprehension that iterates through the list temperature and returns 1 or 0.
+        binary_list = [int(t <= chosen_option) for t in newlist]              #list comprehension that iterates through the list temperature and returns 1 or 0.
         total = sum(binary_list)                              #calculates the total number of entries which were below the non-wear temperature threshold
         totalNonwear = round((total/len_list)*100,2)          #calculates the total non-wear as a fraction of device recording time
         compliancescore = compliancescore(totalNonwear)
+            # return compliancescore
 
+        # if answer == 1:
+        #     compliancescore = namefunction(minimum)
+        # elif answer == 2:
+        #     compliancescore = namefunction(q1)
+        # elif answer == 3:
+        #     compliancescore = namefunction(median)
+        # elif answer == 4:
+        #     compliancescore = namefunction(mean)
+        # elif answer == 5:
+        #     compliancescore = namefunction(q3)
+        # elif answer == 6:
+        #     compliancescore = namefunction(maximum)
+        # else:
+        #     print("Please choose an option 1-6")
 
         '''calculates the total number of steps '''
         resultant_list = read_resultant()
         newf = [round(float(x[0]),0) for x in resultant_list] #converts the list of tuples to a list of integers
         steps = count_steps(newf, 3)
         l = newf
-        n = 86400001
+        n = 200
         chunks = [l[i:i + n] for i in range(0, len(l), n)]    #uses slicing in a list comprehension to make sub lists after each day
-        #print(chunks)
+        # print(chunks)
 
-        #For loop to count steps for xxxx days and record the number of steps into a dictionary (list starts at 0)
-        steps_list = map(count_steps(chunks,3),chunks) #applies the step counting function to every day chunk in the list with a cut off of 3. Creates a list of step counts per day
-        print(steps_list)
+        # For loop to count steps for xxxx days and record the number of steps into a dictionary (list starts at 0)
+        steps_list = []
+        for i in chunks:
+            steps_list.append(count_steps(i,3))
 
-        def step_dictionary(list):
-            daily_steps = {}
-            for i, value in enumerate():
-                daily_steps["day",i] = value
-            return daily_steps
+        combined = list(enumerate(steps_list))
+        days = [x[0] for x in combined]
+        steps = [x[1] for x in combined]
 
-        test_list = [[232],[342],[235],[231]]
-        dictionary_steps = map(step_dictionary,test_list)
-        print(dictionary_steps)
+        dictionary_steps = dict(enumerate(steps_list))
 
         '''CSV writer'''
-        patiententry = [{"patientID": patientID, "age": age, "sex": sex, "total steps": steps, "daily steps": 123, "" "percentage non-wear": totalNonwear, "compliance score": compliancescore}]
+        patiententry = [{"patientID": patientID, "age": age, "sex": sex, "total steps": steps, "daily steps": dictionary_steps, "" "percentage non-wear": totalNonwear, "compliance score": compliancescore}]
 
         with open("patientoutput.csv", "a") as infile:
             fieldnames = ["patientID", "age", "sex", "total steps", "daily steps", "percentage non-wear", "compliance score"]
             patients = csv.DictWriter(infile, fieldnames=fieldnames)
             patients.writeheader()
             patients.writerows(patiententry)
-        #
-        # # plt.plot(f,resultant_list)
-        # # plt.show()
+
+
+        plt.stem(days, steps)
+        # plt.plot(days,steps, '-o')
+        plt.show()
 
         dbcurs.close()
         dbcon.close()
