@@ -115,7 +115,7 @@ while file_exists == False:
                 bool_patientid = False
             else:
                 bool_patientid = True
-        #######
+
         # While loop to check age input
         bool_age = False
         while bool_age == False:
@@ -178,7 +178,7 @@ while file_exists == False:
         elif answer == 7:
             chosen_option = maximum
         else:
-            print("Please choose an option 1-6")
+            print("Please choose an option 1-7")
 
         # def namefunction(chosen_option):
         temp_list_tuples = read_temp_from_db()                #The function returns a list of tuples
@@ -210,18 +210,18 @@ while file_exists == False:
         newf = [round(float(x[0]),0) for x in resultant_list] #converts the list of tuples to a list of integers
         steps = count_steps(newf, 3)
         l = newf
-        n = 86400000
+        n = 86400001                                          #the number of ms per day +1 because the last value is not included when slicing
         chunks = [l[i:i + n] for i in range(0, len(l), n)]    #uses slicing in a list comprehension to make sub lists after each day
         # print(chunks)
 
         # For loop to count steps for xxxx days and record the number of steps into a dictionary (list starts at 0)
         steps_list = []
         for i in chunks:
-            steps_list.append(count_steps(i,3))
+            steps_list.append(count_steps(i,3)) #applies the step counting function to every chunk and adds this total to a list
 
-        combined = list(enumerate(steps_list))
-        days = [x[0] for x in combined]
-        steps = [x[1] for x in combined]
+        combined = list(enumerate(steps_list))  #indexes the steps e.g day:steps i:value  0:2343
+        days = [x[0] for x in combined]         #gets just the index from this list to get a list of days only
+        steps = [x[1] for x in combined]        #gets just the values from this list to get a list of steps only
 
         dictionary_steps = dict(enumerate(steps_list))
 
