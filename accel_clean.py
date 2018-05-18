@@ -161,7 +161,7 @@ while file_exists == False:
         print("Minimum value: ", minimum, "\n1st quartile: ", q1, "\nMedian: ", median, "\nMean: ", mean, "\nMode: ", mode, "\n3rd quartile: ", q3, "\nMaximum value: ", maximum)
 
         # ask the user what threshold he would like:
-        answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: mode \n6 q3, \n7: maximum value"))
+        answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: mode \n6: q3 \n7: maximum value"))
 
         if answer == 1:
             chosen_option = minimum
