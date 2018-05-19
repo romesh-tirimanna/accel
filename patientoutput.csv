@@ -10,3 +10,5 @@ patientID,age,sex,total steps,daily steps,percentage non-wear,compliance score
 romesh,34,M,[1],{0: 1},77.92,poor
 patientID,age,sex,total steps,daily steps,percentage non-wear,compliance score
 dfd,43,M,[1],{0: 1},67.92,poor
+patientID,age,sex,total steps,daily steps,percentage non-wear,compliance score
+romesh,22,M,[1],{0: 1},67.92,poor
