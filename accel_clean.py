@@ -48,7 +48,6 @@ def compliancescore(nonwear):
         score = "error"
     return score
 
-# namefunction function
 
 def read_resultant():
     """Function that reads the SQLite database and returns the resultant collumn"""
@@ -76,8 +75,7 @@ def count_steps(list_days, cutoff):
                 steps += 1
                 #print("line: ", i, "steps: ", steps)
             samestep = True
-
-    return(steps)
+    return steps
 
 
 def chunks(l, n):
@@ -161,24 +159,33 @@ while file_exists == False:
         print("Minimum value: ", minimum, "\n1st quartile: ", q1, "\nMedian: ", median, "\nMean: ", mean, "\nMode: ", mode, "\n3rd quartile: ", q3, "\nMaximum value: ", maximum)
 
         # ask the user what threshold he would like:
-        answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: mode \n6: q3 \n7: maximum value"))
-
-        if answer == 1:
-            chosen_option = minimum
-        elif answer == 2:
-            chosen_option = q1
-        elif answer == 3:
-            chosen_option = median
-        elif answer == 4:
-            chosen_option = mean
-        elif answer == 5:
-            chosen_option = mode
-        elif answer == 6:
-            chosen_option = q3
-        elif answer == 7:
-            chosen_option = maximum
-        else:
-            print("Please choose an option 1-7")
+        bool_stats = False
+        while bool_stats == False:
+            answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: mode \n6: q3 \n7: maximum value"))
+            if answer == 1:
+                chosen_option = minimum
+                bool_stats = True
+            elif answer == 2:
+                chosen_option = q1
+                bool_stats = True
+            elif answer == 3:
+                chosen_option = median
+                bool_stats = True
+            elif answer == 4:
+                chosen_option = mean
+                bool_stats = True
+            elif answer == 5:
+                chosen_option = mode
+                bool_stats = True
+            elif answer == 6:
+                chosen_option = q3
+                bool_stats = True
+            elif answer == 7:
+                chosen_option = maximum
+                bool_stats = True
+            else:
+                print("Please choose an option 1-7")
+                bool_stats = False
 
         # def namefunction(chosen_option):
         temp_list_tuples = read_temp_from_db()                #The function returns a list of tuples
