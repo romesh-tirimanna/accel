@@ -12,15 +12,17 @@
 of the CWA filetype."""
 
 # Modules/ packages imported
-import sqlite3
 import csv
-import statistics
 import numpy as np
 import matplotlib.pyplot as plt
 from pathlib import Path
+import sqlite3
+import statistics
 from cwa1 import *
-### FUNCTIONS
+import subprocess as sp #to use python2 for the cwa1.py file
 
+
+#Functions
 def read_temp_from_db():
     """Function that reads the SQLite database and returns the temperature collumn"""
     dbcurs.execute("SELECT temperature FROM acc ")
@@ -80,31 +82,38 @@ def count_steps(list_days, cutoff):
 
 def chunks(l, n):
     """Function that generates successive n-sized chunks from a list"""
-    for i in range(0, len(l), n):
-        yield l[i:i + n]
+    for items in range(0, len(l), n):
+        yield l[items:items + n]
 
-
-file_exists = False
 
 # While the file doesn't exist, keep asking the question
-while file_exists == False:
-    namedb = str(input("What is the name of your database? (don't need the extension) "))
-    namedb = namedb + ".cwa.sqlite"
+cwa_exists = False
+db_exists = False
+while db_exists == False:
+    name = str(input("What is the name of your file/database? (don't need the extension) "))
+    name_db = name + ".cwa.sqlite"
+    name_cwa = name + ".cwa"
 
-    # Check that the database exists
-    my_file = Path(namedb)
-    if my_file.is_file():
-        file_exists = True
+    my_cwa = Path(name_cwa)
+    if my_cwa.is_file():
+        cwa_exists = True
     else:
-        file_exists = False
+        cwa_exists = False
+
+    # Checks that the database exists
+    my_db = Path(name_db)
+    if my_db.is_file():
+        db_exists = True
+    else:
+        db_exists = False
 
     # When the file does exist, the code can begin
-    if file_exists == True:
-        dbcon = sqlite3.connect(namedb) #makes a connection with the sqlite database in the directory
+    if db_exists == True and cwa_exists == True:
+        dbcon = sqlite3.connect(name_db) #makes a connection with the sqlite database in the directory
         dbcurs = dbcon.cursor()
 
 
-        # While loop to Check that the patient id is not empty
+        # While loop checks that the patient ID is not empty
         bool_patientid = False
         while bool_patientid == False:
             patientID = input("Enter patient ID ")
@@ -161,56 +170,27 @@ while file_exists == False:
         # ask the user what threshold he would like:
         bool_stats = False
         while bool_stats == False:
-            answer = int(input("From the results displayed above, what value would you like as a threshold? \n1: minimum value \n2: q1 \n3: median \n4: mean \n5: mode \n6: q3 \n7: maximum value"))
-            if answer == 1:
-                chosen_option = minimum
-                bool_stats = True
-            elif answer == 2:
-                chosen_option = q1
-                bool_stats = True
-            elif answer == 3:
-                chosen_option = median
-                bool_stats = True
-            elif answer == 4:
-                chosen_option = mean
-                bool_stats = True
-            elif answer == 5:
-                chosen_option = mode
-                bool_stats = True
-            elif answer == 6:
-                chosen_option = q3
-                bool_stats = True
-            elif answer == 7:
-                chosen_option = maximum
-                bool_stats = True
-            else:
-                print("Please choose an option 1-7")
+            answer = input("Based on the results displayed above, please choose a threshold? ")
+            try:
+                threshold = int(answer)
+                if threshold < 0 or threshold > 50:
+                    print("temperature is out of range")
+                    bool_stats = False
+                else:
+                    bool_stats = True
+            except ValueError:
+                print("Enter a number")
                 bool_stats = False
 
-        # def namefunction(chosen_option):
+        '''calculates the total non-wear and compliance score'''
         temp_list_tuples = read_temp_from_db()                #The function returns a list of tuples
         newlist = [x[0] for x in temp_list_tuples]            #list comprehension that formats the list of tuples so that it only takes every 1st element and makes a list of integers.
         len_list = len(newlist)
-        binary_list = [int(t <= chosen_option) for t in newlist]              #list comprehension that iterates through the list temperature and returns 1 or 0.
+        binary_list = [int(t <= threshold) for t in newlist]              #list comprehension that iterates through the list temperature and returns 1 or 0.
         total = sum(binary_list)                              #calculates the total number of entries which were below the non-wear temperature threshold
         totalNonwear = round((total/len_list)*100,2)          #calculates the total non-wear as a fraction of device recording time
         compliancescore = compliancescore(totalNonwear)
-            # return compliancescore
 
-        # if answer == 1:
-        #     compliancescore = namefunction(minimum)
-        # elif answer == 2:
-        #     compliancescore = namefunction(q1)
-        # elif answer == 3:
-        #     compliancescore = namefunction(median)
-        # elif answer == 4:
-        #     compliancescore = namefunction(mean)
-        # elif answer == 5:
-        #     compliancescore = namefunction(q3)
-        # elif answer == 6:
-        #     compliancescore = namefunction(maximum)
-        # else:
-        #     print("Please choose an option 1-6")
 
         '''calculates the total number of steps '''
         resultant_list = read_resultant()
@@ -243,10 +223,14 @@ while file_exists == False:
 
 
         plt.stem(days, steps)
-        # plt.plot(days,steps, '-o')
         plt.show()
 
         dbcurs.close()
         dbcon.close()
+
+    elif db_exists == False and cwa_exists == True:
+        print("creating database.... please wait for the program to restart")
+        sp.call(["python2", "cwa1.py", name + ".cwa"])
+
     else:
-        print("Database unknown, please check the name: ", namedb)
+        print("Database not found, please check the name: ", name)
